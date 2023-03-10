@@ -1,0 +1,19 @@
+{
+  "name": "inertia-solid",
+  "version": "1.0.0",
+  "description": "SolidJS adapter for Inertia.js",
+  "main": "index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lzustiak/inertia-solid.git"
+  },
+  "author": "Levi Zustiak",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/lzustiak/inertia-solid/issues"
+  },
+  "homepage": "https://github.com/lzustiak/inertia-solid#readme"
+}
