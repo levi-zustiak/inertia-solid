@@ -6,12 +6,14 @@
     "lib": ["DOM", "DOM.Iterable", "ES2020"],
     "target": "ES2020",
     "types": ["node"],
+    "jsx": "preserve",
 
     "declaration": true,
-    "declarationDir": "types",
+    "declarationDir": "dist/types",
 
     "module": "ES2020",
     "moduleResolution": "Node",
     "resolveJsonModule": true
-  }
+  },
+  "exclude": ["dist", "node_modules"]
 }
