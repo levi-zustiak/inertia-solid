@@ -1,13 +1,13 @@
 {
   "name": "inertia-solid",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "SolidJS adapter for Inertia.js",
   "type": "module",
   "main": "dist/index.js",
   "module": "dist/index.esm.js",
-  "types": "types/index.d.ts",
+  "types": "dist/types/index.d.ts",
   "scripts": {
-    "build": "rollup -c",
+    "build": "rm -rf dist && rollup -c",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -28,9 +28,15 @@
     "solid-js": "^1.6.13"
   },
   "devDependencies": {
+    "@babel/preset-typescript": "^7.21.0",
+    "@rollup/plugin-babel": "^6.0.3",
+    "@rollup/plugin-commonjs": "^24.0.1",
+    "@rollup/plugin-json": "^6.0.0",
     "@rollup/plugin-node-resolve": "^15.0.1",
+    "@rollup/plugin-terser": "^0.4.0",
     "@rollup/plugin-typescript": "^11.0.0",
     "@types/node": "^18.15.0",
+    "babel-preset-solid": "^1.6.13",
     "prettier": "^2.8.4",
     "rollup": "^3.19.1",
     "solid-js": "^1.6.13",
