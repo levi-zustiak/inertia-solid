@@ -1,10 +1,17 @@
-import { createHeadManager, router } from "@inertiajs/core";
-import { createMemo, createSignal } from "solid-js";
-import { HeadContextProvider } from "./HeadContextProvider";
-import { PageContextProvider } from "./PageContextProvider";
+import { createHeadManager, PageProps, router } from "@inertiajs/core";
+import {
+  createComponent,
+  createEffect,
+  createMemo,
+  createSignal,
+  Show,
+} from "solid-js";
+import { HeadContextProvider } from "./HeadContext";
+import { PageContextProvider } from "./PageContext";
+import { SetupOptions } from "./types";
 
-export function App(props) {
-  const [current, setCurrent] = createSignal({
+export function App(props: SetupOptions<PageProps>["props"]) {
+  const [inertiaCtx, setInertiaCtx] = createSignal({
     component: props.initialComponent || null,
     page: props.initialPage,
     key: null,
@@ -13,51 +20,56 @@ export function App(props) {
   const headManager = createMemo(() =>
     createHeadManager(
       typeof window === "undefined",
-      props.titleCallback || ((title) => title),
-      props.onHeadUpdate || (() => { }),
+      (title) => title,
+      () => { },
     ),
   );
 
   const swapComponent = async ({ component, page, preserveState }) => {
-    setCurrent((prev) => ({
+    setInertiaCtx((prev) => ({
       component,
       page,
       key: preserveState ? prev.key : Date.now(),
     }));
   };
 
-  router.init({
-    initialPage: props.initialPage,
-    resolveComponent: props.resolveComponent,
-    swapComponent,
+  createEffect(() => {
+    router.init({
+      initialPage: props.initialPage,
+      resolveComponent: props.resolveComponent,
+      swapComponent,
+    });
   });
 
-  if (!current().component) {
-    return (
-      <HeadContextProvider value={headManager}>
-        <PageContextProvider value={current().page}>{null}</PageContextProvider>
-      </HeadContextProvider>
-    );
-  }
+  const renderChildren = ({ Component, props, key }) => {
+    const child = createComponent(Component, { key, ...props });
 
-  const renderChildren =
-    props.children ||
-    (({ Component, props, key }) => {
-      return typeof Component.layout === "function" ? (
-        Component.layout(<Component key={key} {...props} />)
-      ) : (
-        <Component key={key} {...props} />
-      );
-    });
+    if (typeof Component.layout === "function") {
+      return Component.layout(child);
+    }
+
+    if (Array.isArray(Component.layout)) {
+      return Component.layout
+        .concat(child)
+        .reverse()
+        .reduce((children, Layout) =>
+          createComponent(Layout, { children, ...props }),
+        );
+    }
+
+    return child;
+  };
 
   return (
     <HeadContextProvider value={headManager}>
-      <PageContextProvider value={current().page}>
-        {renderChildren({
-          Component: current().component,
-          key: current().key,
-          props: current().page.props,
-        })}
+      <PageContextProvider value={inertiaCtx().page}>
+        <Show when={!!inertiaCtx().component}>
+          {renderChildren({
+            Component: inertiaCtx().component,
+            key: inertiaCtx().key,
+            props: inertiaCtx().page.props,
+          })}
+        </Show>
       </PageContextProvider>
     </HeadContextProvider>
   );
