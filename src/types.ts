@@ -1,31 +1,37 @@
 import { Page, PageProps } from "@inertiajs/core";
-import { Component } from "solid-js";
+import { Component, JSXElement } from "solid-js";
 
-type PageResolver = (name: string) => Promise<unknown>;
+export type Key = number | string | null;
+type ComponentResolver = (name: string) => Promise<Component>;
+export type InertiaComponent<P extends PageProps = PageProps> = Component<P> & { layout?: (page: JSXElement) => JSXElement; };
 
-type TApp = Component<SetupOptions<PageProps>["props"]>;
+export interface AppProps {
+  initialPage: Page;
+  initialComponent: InertiaComponent;
+  resolveComponent: ComponentResolver;
+}
 
-export type SetupOptions<SharedProps extends PageProps> = {
+export interface SetupOptions {
   el: HTMLElement;
-  App: TApp;
+  App: Component<AppProps>;
   props: {
-    initialPage: Page<SharedProps>;
-    initialComponent: any;
-    resolveComponent: PageResolver;
+    initialPage: Page;
+    initialComponent: InertiaComponent;
+    resolveComponent: ComponentResolver;
   };
 };
 
-export type InertiaAppOptions<SharedProps extends PageProps> = {
-  resolveComponent: PageResolver;
-  setup: (options: SetupOptions<SharedProps>) => void;
+export interface InertiaAppOptions {
+  resolveComponent: ComponentResolver;
+  setup: (options: SetupOptions) => void;
   id?: string;
-  progress?:
-  | false
-  | {
-    delay?: number;
-    color?: string;
-    includeCSS?: boolean;
-    showSpinner?: boolean;
-  };
   title?: (title: string) => string;
-};
+  progress?:
+    | false
+    | {
+        delay?: number;
+        color?: string;
+        includeCSS?: boolean;
+        showSpinner?: boolean;
+    };
+}
