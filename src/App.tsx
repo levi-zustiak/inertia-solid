@@ -1,29 +1,14 @@
-import { createHeadManager, PageProps, router } from "@inertiajs/core";
-import {
-  createComponent,
-  createEffect,
-  createMemo,
-  createSignal,
-  Show,
-} from "solid-js";
-import { HeadContextProvider } from "./HeadContext";
-import { PageContextProvider } from "./PageContext";
-import { SetupOptions } from "./types";
+import { router } from "@inertiajs/core";
+import { createComponent, createEffect, Show } from "solid-js";
+import { inertiaCtx, setInertiaCtx } from "./InertiaContext";
+import { AppProps } from "./types";
 
-export function App(props: SetupOptions<PageProps>["props"]) {
-  const [inertiaCtx, setInertiaCtx] = createSignal({
-    component: props.initialComponent || null,
+export function App(props: AppProps) {
+  setInertiaCtx({
+    component: props.initialComponent,
     page: props.initialPage,
     key: null,
   });
-
-  const headManager = createMemo(() =>
-    createHeadManager(
-      typeof window === "undefined",
-      (title) => title,
-      () => { },
-    ),
-  );
 
   const swapComponent = async ({ component, page, preserveState }) => {
     setInertiaCtx((prev) => ({
@@ -41,36 +26,32 @@ export function App(props: SetupOptions<PageProps>["props"]) {
     });
   });
 
-  const renderChildren = ({ Component, props, key }) => {
-    const child = createComponent(Component, { key, ...props });
+  const renderPage = ({ Component, props, key }) => {
+    const page = createComponent(Component, { key, ...props });
 
     if (typeof Component.layout === "function") {
-      return Component.layout(child);
+      return Component.layout(page);
     }
 
     if (Array.isArray(Component.layout)) {
       return Component.layout
-        .concat(child)
+        .concat(page)
         .reverse()
         .reduce((children, Layout) =>
           createComponent(Layout, { children, ...props }),
         );
     }
 
-    return child;
+    return page;
   };
 
   return (
-    <HeadContextProvider value={headManager}>
-      <PageContextProvider value={inertiaCtx().page}>
-        <Show when={!!inertiaCtx().component}>
-          {renderChildren({
-            Component: inertiaCtx().component,
-            key: inertiaCtx().key,
-            props: inertiaCtx().page.props,
-          })}
-        </Show>
-      </PageContextProvider>
-    </HeadContextProvider>
+    <Show when={!!inertiaCtx().component}>
+      {renderPage({
+        Component: inertiaCtx().component,
+        key: inertiaCtx().key,
+        props: inertiaCtx().page.props,
+      })}
+    </Show>
   );
 }

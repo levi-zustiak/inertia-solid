@@ -1,15 +1,13 @@
-import { PageProps, setupProgress } from "@inertiajs/core";
+import { setupProgress } from "@inertiajs/core";
 import { App } from "./App";
 import type { InertiaAppOptions } from "./types";
 
-export async function createInertiaApp<
-  SharedProps extends PageProps = PageProps,
->({
+export async function createInertiaApp({
   id = "app",
   resolveComponent,
   setup,
   progress = {},
-}: InertiaAppOptions<SharedProps>): Promise<void> {
+}: InertiaAppOptions): Promise<void> {
   const el = document.getElementById(id)!;
   const initialPage = JSON.parse(el?.dataset.page ?? "null");
 
