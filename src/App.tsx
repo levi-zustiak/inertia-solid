@@ -1,21 +1,40 @@
 import { router } from "@inertiajs/core";
-import { createComponent, createEffect, Show } from "solid-js";
-import { inertiaCtx, setInertiaCtx } from "./InertiaContext";
+import {createComponent, createEffect, mergeProps, Show} from "solid-js";
 import { AppProps } from "./types";
+import {createStore, reconcile} from "solid-js/store";
+import PageContext from "./PageContext";
+
+function extractLayouts(component) {
+  if (!component) {
+    return [];
+  }
+
+  if (typeof component.layout === 'function') {
+    return [component.layout];
+  }
+
+  if (Array.isArray(component.layou)) {
+    return component.layout;
+  }
+
+  return [];
+}
 
 export function App(props: AppProps) {
-  setInertiaCtx({
+  const [context, setContext] = createStore({
     component: props.initialComponent,
     page: props.initialPage,
+    layouts: extractLayouts(props.initialComponent || null),
     key: null,
-  });
+  })
 
   const swapComponent = async ({ component, page, preserveState }) => {
-    setInertiaCtx((prev) => ({
+    setContext(reconcile({
       component,
       page,
-      key: preserveState ? prev.key : Date.now(),
-    }));
+      layouts: extractLayouts(props.initialComponent || null),
+      key: preserveState ? context.key : Date.now(),
+    }))
   };
 
   createEffect(() => {
@@ -26,32 +45,36 @@ export function App(props: AppProps) {
     });
   });
 
-  const renderPage = ({ Component, props, key }) => {
-    const page = createComponent(Component, { key, ...props });
 
-    if (typeof Component.layout === "function") {
-      return Component.layout(page);
+  const children = (i = 0) => {
+    const layout = context.layouts[i];
+
+    if (!layout) {
+      return createComponent(context.component, mergeProps(
+          { key: context.key },
+          () => context.page.props
+      ));
     }
 
-    if (Array.isArray(Component.layout)) {
-      return Component.layout
-        .concat(page)
-        .reverse()
-        .reduce((children, Layout) =>
-          createComponent(Layout, { children, ...props }),
-        );
+    return createComponent(
+        layout,
+        mergeProps(
+            () => context.page.props,
+            {
+              get children() {
+                return children(i + 1)
+              },
+            }
+        ),
+    )
+  }
+
+  return createComponent(PageContext.Provider, {
+    get value() {
+      return context.page
+    },
+    get children() {
+      return children();
     }
-
-    return page;
-  };
-
-  return (
-    <Show when={!!inertiaCtx().component}>
-      {renderPage({
-        Component: inertiaCtx().component,
-        key: inertiaCtx().key,
-        props: inertiaCtx().page.props,
-      })}
-    </Show>
-  );
+  })
 }

@@ -4,7 +4,7 @@ import type { InertiaAppOptions } from "./types";
 
 export async function createInertiaApp({
   id = "app",
-  resolveComponent,
+  resolve,
   setup,
   progress = {},
 }: InertiaAppOptions): Promise<void> {
@@ -12,6 +12,8 @@ export async function createInertiaApp({
   const initialPage = JSON.parse(el?.dataset.page ?? "null");
 
   if (!initialPage) throw new Error("Inertia initialPage was not found");
+
+  const resolveComponent = (name) => Promise.resolve(resolve(name)).then((module: any) => module.default || module);
 
   const initialComponent = await resolveComponent(initialPage.component);
 

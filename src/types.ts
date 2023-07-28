@@ -22,7 +22,7 @@ export interface SetupOptions {
 };
 
 export interface InertiaAppOptions {
-  resolveComponent: ComponentResolver;
+  resolve: ComponentResolver;
   setup: (options: SetupOptions) => void;
   id?: string;
   title?: (title: string) => string;
