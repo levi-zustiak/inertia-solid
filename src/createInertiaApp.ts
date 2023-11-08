@@ -17,6 +17,10 @@ export async function createInertiaApp({
 
   const initialComponent = await resolveComponent(initialPage.component);
 
+  if (progress) {
+    setupProgress(progress);
+  }
+
   setup({
     el,
     App,
@@ -26,8 +30,4 @@ export async function createInertiaApp({
       resolveComponent,
     },
   });
-
-  if (progress) {
-    setupProgress(progress);
-  }
 }

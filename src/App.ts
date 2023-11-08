@@ -1,8 +1,16 @@
-import { router } from "@inertiajs/core";
-import {createComponent, createEffect, mergeProps, Show} from "solid-js";
-import { AppProps } from "./types";
+import {Page, router} from "@inertiajs/core";
+import {mergeProps, ParentComponent} from "solid-js";
+import { createComponent } from "solid-js/web";
+import {AppProps, InertiaComponent} from "./types";
 import {createStore, reconcile} from "solid-js/store";
 import PageContext from "./PageContext";
+
+type InertiaContext = {
+  component: any;
+  page: any;
+  layouts: ParentComponent<any>[];
+  key: any;
+}
 
 function extractLayouts(component) {
   if (!component) {
@@ -13,7 +21,7 @@ function extractLayouts(component) {
     return [component.layout];
   }
 
-  if (Array.isArray(component.layou)) {
+  if (Array.isArray(component.layout)) {
     return component.layout;
   }
 
@@ -21,28 +29,26 @@ function extractLayouts(component) {
 }
 
 export function App(props: AppProps) {
-  const [context, setContext] = createStore({
-    component: props.initialComponent,
+  const [context, setContext] = createStore<InertiaContext>({
+    component: props.initialComponent || null,
     page: props.initialPage,
     layouts: extractLayouts(props.initialComponent || null),
     key: null,
   })
 
-  const swapComponent = async ({ component, page, preserveState }) => {
-    setContext(reconcile({
-      component,
-      page,
-      layouts: extractLayouts(props.initialComponent || null),
-      key: preserveState ? context.key : Date.now(),
-    }))
-  };
-
-  createEffect(() => {
-    router.init({
-      initialPage: props.initialPage,
-      resolveComponent: props.resolveComponent,
-      swapComponent,
-    });
+  router.init({
+    initialPage: props.initialPage,
+    resolveComponent: props.resolveComponent,
+    async swapComponent({ component, page, preserveState}) {
+      setContext(
+          reconcile({
+            component,
+            layouts: extractLayouts(component),
+            page,
+            key: preserveState ? context.key : Date.now(),
+          }),
+      )
+    }
   });
 
 
